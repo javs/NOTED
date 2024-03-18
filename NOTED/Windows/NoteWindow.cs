@@ -51,6 +51,14 @@ namespace NOTED.Windows
 
             text = text.Replace("%", "%%");
 
+            if (Note?.Title != null)
+            {
+                if (ImGui.Button(Note?.Title, new Vector2(-1.0f, 0.0f)))
+                {
+                    Plugin.NextNote();
+                }
+            }
+
             ImGui.PushTextWrapPos(ImGui.GetWindowWidth());
             ImGui.TextWrapped(text);
             ImGui.PopTextWrapPos();
