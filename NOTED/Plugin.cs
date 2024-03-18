@@ -189,7 +189,7 @@ namespace NOTED
             });
         }
 
-        private void NextNote()
+        public static void NextNote()
         {
             if (_activeDuty == null || _activeDuty.Notes.Count <= 1) { return; }
 
