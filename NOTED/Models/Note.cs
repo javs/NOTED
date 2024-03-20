@@ -1,4 +1,6 @@
-﻿namespace NOTED.Models
+﻿using static System.Net.Mime.MediaTypeNames;
+
+namespace NOTED.Models
 {
     public class Note
     {
@@ -19,6 +21,13 @@
         {
             Title = title;
             Text = "";
+            Jobs = new JobsData();
+        }
+
+        public Note(string title, string text)
+        {
+            Title = title;
+            Text = text;
             Jobs = new JobsData();
         }
 

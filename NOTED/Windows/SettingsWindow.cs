@@ -4,11 +4,14 @@ using Dalamud.Interface.Windowing;
 using ImGuiNET;
 using Lumina.Excel;
 using Lumina.Excel.GeneratedSheets;
+using Microsoft.VisualBasic.FileIO;
 using NOTED.Helpers;
 using NOTED.Models;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Text.RegularExpressions;
 
 namespace NOTED.Windows
 {
@@ -333,11 +336,103 @@ namespace NOTED.Windows
             ImGui.EndChild();
         }
 
+        private DutyData? SearchDuty2(string duty)
+        {
+            // todo: extract duties to helper
+            // todo: extract SearchDuty function below
+
+            string s = duty.ToUpper();
+            s = Regex.Replace(s, @"^\[\w+\] ", "");
+
+            var result = _duties.Where(duty => duty.Name.ToUpper().Equals(s)).ToList();
+
+            if (result.Count == 0)
+                return null;
+            return result[0];
+        }
+
+        private List<Note> Text2Notes(string text)
+        {
+            // Assume there is always a note
+            List <Note> notes = [new Note()];
+
+            using (StringReader reader = new StringReader(text))
+            {
+                string? line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    if (line.StartsWith("- "))
+                    {
+                        var title = line.Substring(2);
+
+                        if (notes.Last().Title == "")
+                            notes.Last().Title = title;
+                        else
+                            notes.Add(new Note(title));
+                    }
+                    else
+                        notes.Last().Text += line;
+                }
+            }
+
+            return notes;
+        }
+
+        private void ImportNeatNoterNotes(string notes)
+        {
+            // todo: file picker / read newest from neatnoter export dir directly
+            using (TextFieldParser parser = new TextFieldParser(
+                @"C:\Users\javie\AppData\Roaming\XIVLauncher\pluginConfigs\NeatNoter\export\export_1710967532923.csv"))
+            {
+                parser.TextFieldType = FieldType.Delimited;
+                parser.SetDelimiters(",");
+
+                if (parser.EndOfData)
+                    return;
+
+                // Skip header
+                parser.ReadLine();
+
+                while (!parser.EndOfData)
+                {
+                    string[]? fields = parser.ReadFields();
+
+                    if (fields == null)
+                        continue;
+
+                    Plugin.Logger.Information("> Note: {0}", fields[0]);
+
+                    var duty = SearchDuty2(fields[0]);
+
+                    // todo: deal with duties not found
+                    if (duty == null)
+                    {
+                        Plugin.Logger.Information("  - No duties match, skipping");
+                        continue;
+                    }
+
+                    List<Note> parsed = Text2Notes(fields[2]);
+
+                    foreach (var note in parsed)
+                        AddNote(duty.ID, duty.Name, note);
+                }
+            }
+        }
+
         private void ImportNoteFromClipboard()
         {
+            // todo: new button
+            ImportNeatNoterNotes("asd");
+            return;
+
             string importString = ImGui.GetClipboardText();
             var (id, dutyName, note) = ImportExportHelper.ImportNote(importString);
 
+            AddNote(id, dutyName, note);
+        }
+
+        private void AddNote(uint id, string? dutyName, Note note)
+        {
             if (id > 0 && note != null)
             {
                 Duty? duty = null;
