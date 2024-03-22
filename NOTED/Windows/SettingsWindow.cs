@@ -423,7 +423,7 @@ namespace NOTED.Windows
                         ImGui.SetKeyboardFocusHere();
                         NeedsFocus = false;
                     }
-                    ImGui.InputTextMultiline("##Text", ref SelectedNote.Text, 99999, new Vector2(398 * _scale, 433 * _scale), ImGuiInputTextFlags.AutoSelectAll);
+                    ImGui.InputTextMultiline("##Text", ref SelectedNote.Text, 99999, new Vector2(398 * _scale, 433 * _scale), ImGuiInputTextFlags.AutoSelectAll | ImGuiInputTextFlags.AllowTabInput);
 
                     ImGui.Checkbox("Enabled", ref SelectedNote.Enabled);
 
