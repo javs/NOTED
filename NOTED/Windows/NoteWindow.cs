@@ -12,6 +12,8 @@ namespace NOTED.Windows
         private float _scale => ImGuiHelpers.GlobalScale;
         private Settings Settings => Plugin.Settings;
 
+        public int DutyNotes { get; internal set; }
+
         public Note? Note = null;
         private ImGuiWindowFlags _baseFlags = ImGuiWindowFlags.NoScrollbar
                                             | ImGuiWindowFlags.NoCollapse
@@ -51,7 +53,7 @@ namespace NOTED.Windows
             string? text = Settings.Preview ? PreviewText : Note?.Text;
             if (text == null) { return; }
 
-            if (Note?.Title != null && Note.Title != "")
+            if (Note?.Title != null && Note.Title != "" && (DutyNotes > 1 || Note.Title != "All"))
             {
                 if (ImGui.Button(Note?.Title, new Vector2(-1.0f, 0.0f)))
                 {
