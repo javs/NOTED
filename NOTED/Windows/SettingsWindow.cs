@@ -1,4 +1,5 @@
-﻿using Dalamud.Interface;
+﻿using CsvHelper;
+using Dalamud.Interface;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
@@ -8,6 +9,7 @@ using Microsoft.VisualBasic.FileIO;
 using NOTED.Helpers;
 using NOTED.Models;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -371,51 +373,59 @@ namespace NOTED.Windows
                             notes.Add(new Note(title));
                     }
                     else
-                        notes.Last().Text += line;
+                        notes.Last().Text += line + '\n';
                 }
             }
 
             return notes;
         }
 
+        class NeatNoterNote
+        {
+            public string Name { get; set; } = "";
+            public uint Id { get; set; } = 0;
+            public string Body { get; set; } = "";
+            public string Created { get; set; } = "";
+            public string Modified { get; set; } = "";
+            public string Categories { get; set; } = "";
+        }
+
         private void ImportNeatNoterNotes(string notes)
         {
-            // todo: file picker / read newest from neatnoter export dir directly
-            using (TextFieldParser parser = new TextFieldParser(
-                @"C:\Users\javie\AppData\Roaming\XIVLauncher\pluginConfigs\NeatNoter\export\export_1710967532923.csv"))
+            try
             {
-                parser.TextFieldType = FieldType.Delimited;
-                parser.SetDelimiters(",");
-
-                if (parser.EndOfData)
-                    return;
-
-                // Skip header
-                parser.ReadLine();
-
-                while (!parser.EndOfData)
+                // todo: file picker / read newest from neatnoter export dir directly
+                using (var reader = new StreamReader(
+                        @"C:\Users\javie\AppData\Roaming\XIVLauncher\pluginConfigs\NeatNoter\export\export_1710967532923.csv"))
+                using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
                 {
-                    string[]? fields = parser.ReadFields();
+                    var records = csv.GetRecords<NeatNoterNote>();
 
-                    if (fields == null)
-                        continue;
-
-                    Plugin.Logger.Information("> Note: {0}", fields[0]);
-
-                    var duty = SearchDuty2(fields[0]);
-
-                    // todo: deal with duties not found
-                    if (duty == null)
+                    foreach (var record in records)
                     {
-                        Plugin.Logger.Information("  - No duties match, skipping");
-                        continue;
+                        Plugin.Logger.Information("> Note: {0}", record.Name);
+
+                        var duty = SearchDuty2(record.Name);
+
+                        // todo: deal with duties not found
+                        if (duty == null)
+                        {
+                            Plugin.Logger.Information("  - No duties match, skipping");
+                            continue;
+                        }
+
+                        Plugin.Logger.Information("Lines {0}", record.Body);
+
+                        List<Note> parsed = Text2Notes(record.Body);
+
+                        foreach (var note in parsed)
+                            AddNote(duty.ID, duty.Name, note);
                     }
-
-                    List<Note> parsed = Text2Notes(fields[2]);
-
-                    foreach (var note in parsed)
-                        AddNote(duty.ID, duty.Name, note);
                 }
+            }
+            catch (System.Exception ex)
+            {
+                Plugin.Logger.Error(ex.ToString());
             }
         }
 
