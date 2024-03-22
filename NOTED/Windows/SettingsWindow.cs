@@ -66,6 +66,7 @@ namespace NOTED.Windows
         {
             SelectedDuty = null;
             SelectedNote = null;
+            Settings.Save(Settings);
         }
 
         public override void Draw()
