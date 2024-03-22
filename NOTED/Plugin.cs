@@ -285,6 +285,7 @@ namespace NOTED
 
                 _prevNote = activeNote;
                 _noteWindow.Note = activeNote;
+                _noteWindow.DutyNotes = _activeDuty.Notes.Count;
             }
 
             _noteWindow.IsOpen = IsNoteWindowOpened();
