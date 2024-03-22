@@ -51,7 +51,7 @@ namespace NOTED.Windows
 
             text = text.Replace("%", "%%");
 
-            if (Note?.Title != null)
+            if (Note?.Title != null && Note.Title != "")
             {
                 if (ImGui.Button(Note?.Title, new Vector2(-1.0f, 0.0f)))
                 {
