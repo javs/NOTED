@@ -64,6 +64,7 @@ namespace NOTED.Windows
         {
             SelectedDuty = null;
             SelectedNote = null;
+            Settings.Save(Settings);
         }
 
         public override void Draw()
@@ -183,7 +184,7 @@ namespace NOTED.Windows
                     return;
                 }
 
-                string[] lines = new string[] { "Are you sure you want the note:", "\"" + SelectedNote.Title + "\"?" };
+                string[] lines = new string[] { "Are you sure you want to delete the note:", "\"" + SelectedNote.Title + "\"?" };
                 var (didConfirm, didClose) = DrawHelper.DrawConfirmationModal("Delete?", lines);
                 if (didConfirm && SelectedDuty != null)
                 {
